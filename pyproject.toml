@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "rdbpy"
+version = "0.1.0"
+description = ""
+authors = ["y011d4 <yoiida333@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.scripts]
+rdbpy = "rdbpy.cli:main"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
