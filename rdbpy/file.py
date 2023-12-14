@@ -3,6 +3,7 @@ import struct
 from io import BufferedRandom
 from dataclasses import dataclass
 from pathlib import Path
+from threading import Lock
 from typing import Union
 
 
@@ -61,6 +62,7 @@ class FileMgr:
     _blocksize: int
     _is_new: bool
     _open_files: dict[str, BufferedRandom]
+    _lock: Lock
 
     def __init__(self, db_directory: Path, blocksize: int) -> None:
         self._db_directory = db_directory
@@ -74,37 +76,41 @@ class FileMgr:
                 filepath.unlink()
 
         self._open_files = {}
+        self._lock = Lock()
 
     def read(self, blk: BlockId, p: Page) -> None:
-        try:
-            f = self._get_file(blk.filename)
-            f.seek(blk.blknum * self._blocksize)
-            f.readinto(p.contents())
-        except Exception as e:
-            print(e)
-            raise RuntimeError(f"cannot read block {blk}")
+        with self._lock:
+            try:
+                f = self._get_file(blk.filename)
+                f.seek(blk.blknum * self._blocksize)
+                f.readinto(p.contents())
+            except Exception as e:
+                print(e)
+                raise RuntimeError(f"cannot read block {blk}")
 
     def write(self, blk: BlockId, p: Page) -> None:
-        try:
-            f = self._get_file(blk.filename)
-            f.seek(blk.blknum * self._blocksize)
-            f.write(p.contents())
-        except Exception as e:
-            print(e)
-            raise RuntimeError(f"cannot write block {blk}")
+        with self._lock:
+            try:
+                f = self._get_file(blk.filename)
+                f.seek(blk.blknum * self._blocksize)
+                f.write(p.contents())
+            except Exception as e:
+                print(e)
+                raise RuntimeError(f"cannot write block {blk}")
 
     def append(self, filename: str) -> BlockId:
-        newblknum = self.length(filename)
-        blk = BlockId(filename, newblknum)
-        b = bytes(self._blocksize)
-        try:
-            f = self._get_file(blk.filename)
-            f.seek(blk.blknum * self._blocksize)
-            f.write(b)
-        except Exception as e:
-            print(e)
-            raise RuntimeError(f"cannot append block {blk}")
-        return blk
+        with self._lock:
+            newblknum = self.length(filename)
+            blk = BlockId(filename, newblknum)
+            b = bytes(self._blocksize)
+            try:
+                f = self._get_file(blk.filename)
+                f.seek(blk.blknum * self._blocksize)
+                f.write(b)
+            except Exception as e:
+                print(e)
+                raise RuntimeError(f"cannot append block {blk}")
+            return blk
 
     def length(self, filename: str) -> int:
         try:
@@ -143,5 +149,5 @@ class FileMgr:
 """
 BlockId: filename の何ブロック目の Page を読み書きするか指定する
 Page: int, str, bytes をバイト列でシリアライズしてインメモリに保持する
-FileMgr: BlockId, Page を受け取り、ファイルの読み書きをするか
+FileMgr: BlockId, Page を受け取り、ファイルの読み書きをする
 """

@@ -1,3 +1,4 @@
+from threading import Lock
 from rdbpy.file import BlockId, FileMgr, Page
 
 
@@ -8,6 +9,7 @@ class LogMgr:
     _currentblk: BlockId
     _latest_lsn: int
     _last_saved_lsn: int
+    _lock: Lock
 
     def __init__(self, fm: FileMgr, logfile: str) -> None:
         self._fm = fm
@@ -22,6 +24,7 @@ class LogMgr:
             fm.read(self._currentblk, self._logpage)
         self._latest_lsn = 0
         self._last_saved_lsn = 0
+        self._lock = Lock()
 
     def flush(self, lsn: int) -> None:
         if lsn >= self._last_saved_lsn:
@@ -32,18 +35,19 @@ class LogMgr:
         return LogIterator(self._fm, self._currentblk)
 
     def append(self, logrec: bytes) -> int:
-        boundary = self._logpage.get_int(0)
-        recsize = len(logrec)
-        bytesneeded = recsize + 4
-        if boundary - bytesneeded < 4:
-            self._flush()
-            self._currentblk = self._append_new_block()
+        with self._lock:
             boundary = self._logpage.get_int(0)
-        recpos = boundary - bytesneeded
-        self._logpage.set_bytes(recpos, logrec)
-        self._logpage.set_int(0, recpos)
-        self._latest_lsn += 1
-        return self._latest_lsn
+            recsize = len(logrec)
+            bytesneeded = recsize + 4
+            if boundary - bytesneeded < 4:
+                self._flush()
+                self._currentblk = self._append_new_block()
+                boundary = self._logpage.get_int(0)
+            recpos = boundary - bytesneeded
+            self._logpage.set_bytes(recpos, logrec)
+            self._logpage.set_int(0, recpos)
+            self._latest_lsn += 1
+            return self._latest_lsn
 
     def _append_new_block(self) -> BlockId:
         blk = self._fm.append(self._logfile)
