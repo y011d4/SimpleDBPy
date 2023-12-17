@@ -175,4 +175,5 @@ class RecordPage:
         return self._offset(slot + 1) <= self._tx.block_size()
 
     def _offset(self, slot: int) -> int:
+        assert self._layout.slot_size() <= self._tx.block_size()
         return slot * self._layout.slot_size()
