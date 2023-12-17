@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from rdbpy.buffer import BufferMgr
 
-from rdbpy.file import BlockId, FileMgr
+from rdbpy.file import FileMgr
 from rdbpy.log import LogMgr
 from rdbpy.record import Layout, RecordPage, Schema
 from rdbpy.transaction import Transaction
