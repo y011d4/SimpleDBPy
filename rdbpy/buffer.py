@@ -6,7 +6,7 @@ from rdbpy.file import BlockId, FileMgr, Page
 from rdbpy.log import LogMgr
 
 
-class BufferAbortException(RuntimeError):
+class BufferAbortError(RuntimeError):
     pass
 
 
@@ -105,11 +105,11 @@ class BufferMgr:
                 self._cv.wait(self.MAX_TIME)
                 buff = self._try_to_pin(blk)
             if buff is None:
-                raise BufferAbortException()
+                raise BufferAbortError()
             return buff
 
     def _waiting_too_long(self, starttime: int) -> bool:
-        return int(time.time()) - starttime > self.MAX_TIME
+        return time.time() - starttime > self.MAX_TIME
 
     def _try_to_pin(self, blk: BlockId) -> Optional[Buffer]:
         buff = self._find_existing_buffer(blk)
