@@ -1,10 +1,10 @@
 from pathlib import Path
-from rdbpy.buffer import BufferMgr
+from simpledbpy.buffer import BufferMgr
 
-from rdbpy.file import FileMgr
-from rdbpy.log import LogMgr
-from rdbpy.metadata import MetadataMgr
-from rdbpy.transaction import Transaction
+from simpledbpy.file import FileMgr
+from simpledbpy.log import LogMgr
+from simpledbpy.metadata import MetadataMgr
+from simpledbpy.transaction import Transaction
 
 
 class SimpleDB:

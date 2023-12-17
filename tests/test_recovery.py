@@ -1,12 +1,12 @@
 import os
 from pathlib import Path
 import unittest
-from rdbpy.buffer import BufferMgr
-from rdbpy.file import BlockId, FileMgr
-from rdbpy.log import LogMgr
+from simpledbpy.buffer import BufferMgr
+from simpledbpy.file import BlockId, FileMgr
+from simpledbpy.log import LogMgr
 
-from rdbpy.recovery import RecoveryMgr
-from rdbpy.transaction import Transaction
+from simpledbpy.recovery import RecoveryMgr
+from simpledbpy.transaction import Transaction
 
 
 class TestRecovery(unittest.TestCase):

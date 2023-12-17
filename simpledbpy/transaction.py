@@ -1,9 +1,9 @@
 from threading import Lock
-from rdbpy.buffer import Buffer, BufferMgr
-from rdbpy.concurrency import ConcurrencyMgr
-from rdbpy.file import BlockId, FileMgr
-from rdbpy.log import LogMgr
-from rdbpy.recovery import RecoveryMgr
+from simpledbpy.buffer import Buffer, BufferMgr
+from simpledbpy.concurrency import ConcurrencyMgr
+from simpledbpy.file import BlockId, FileMgr
+from simpledbpy.log import LogMgr
+from simpledbpy.recovery import RecoveryMgr
 
 
 class BufferList:

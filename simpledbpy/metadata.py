@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from threading import Lock
 from typing import Mapping
 
-from rdbpy.record import Layout, Schema, Types
-from rdbpy.scan import TableScan
-from rdbpy.transaction import Transaction
+from simpledbpy.record import Layout, Schema, Types
+from simpledbpy.scan import TableScan
+from simpledbpy.transaction import Transaction
 
 
 class TableMgr:

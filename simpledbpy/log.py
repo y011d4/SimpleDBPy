@@ -1,5 +1,5 @@
 from threading import Lock
-from rdbpy.file import BlockId, FileMgr, Page
+from simpledbpy.file import BlockId, FileMgr, Page
 
 
 class LogMgr:

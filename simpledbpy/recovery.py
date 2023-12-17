@@ -3,12 +3,12 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Optional, TYPE_CHECKING
 
-from rdbpy.buffer import Buffer, BufferMgr
-from rdbpy.file import BlockId, Page
-from rdbpy.log import LogMgr
+from simpledbpy.buffer import Buffer, BufferMgr
+from simpledbpy.file import BlockId, Page
+from simpledbpy.log import LogMgr
 
 if TYPE_CHECKING:
-    from rdbpy.transaction import Transaction
+    from simpledbpy.transaction import Transaction
 
 
 class LogType(Enum):

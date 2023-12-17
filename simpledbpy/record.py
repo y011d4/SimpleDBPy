@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Mapping, Sequence
 
-from rdbpy.file import BlockId, Page
-from rdbpy.transaction import Transaction
+from simpledbpy.file import BlockId, Page
+from simpledbpy.transaction import Transaction
 
 
 class Types(Enum):

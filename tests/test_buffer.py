@@ -4,9 +4,9 @@ import unittest
 from pathlib import Path
 from typing import Optional
 
-from rdbpy.buffer import Buffer, BufferAbortException, BufferMgr
-from rdbpy.file import BlockId, FileMgr
-from rdbpy.log import LogMgr
+from simpledbpy.buffer import Buffer, BufferAbortException, BufferMgr
+from simpledbpy.file import BlockId, FileMgr
+from simpledbpy.log import LogMgr
 
 
 class TestBuffer(unittest.TestCase):

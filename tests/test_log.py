@@ -1,8 +1,8 @@
 import unittest
 from pathlib import Path
 
-from rdbpy.file import FileMgr, Page
-from rdbpy.log import LogMgr
+from simpledbpy.file import FileMgr, Page
+from simpledbpy.log import LogMgr
 
 
 class TestLog(unittest.TestCase):

@@ -2,11 +2,11 @@ import threading
 import time
 import unittest
 from pathlib import Path
-from rdbpy.buffer import BufferMgr
+from simpledbpy.buffer import BufferMgr
 
-from rdbpy.file import BlockId, FileMgr
-from rdbpy.log import LogMgr
-from rdbpy.transaction import Transaction
+from simpledbpy.file import BlockId, FileMgr
+from simpledbpy.log import LogMgr
+from simpledbpy.transaction import Transaction
 
 
 class TxTest(unittest.TestCase):

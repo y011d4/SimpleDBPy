@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from rdbpy.file import BlockId, FileMgr, Page
+from simpledbpy.file import BlockId, FileMgr, Page
 
 
 class TestFile(unittest.TestCase):

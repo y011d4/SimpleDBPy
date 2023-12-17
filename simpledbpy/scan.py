@@ -1,10 +1,10 @@
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Optional
-from rdbpy.file import BlockId
-from rdbpy.record import Layout, RecordPage, Types
+from simpledbpy.file import BlockId
+from simpledbpy.record import Layout, RecordPage, Types
 
-from rdbpy.transaction import Transaction
+from simpledbpy.transaction import Transaction
 
 
 @dataclass

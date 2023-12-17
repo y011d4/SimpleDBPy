@@ -2,15 +2,15 @@ import random
 import unittest
 import shutil
 from pathlib import Path
-from rdbpy.buffer import BufferMgr
+from simpledbpy.buffer import BufferMgr
 
-from rdbpy.file import FileMgr
-from rdbpy.log import LogMgr
-from rdbpy.metadata import MetadataMgr, TableMgr
-from rdbpy.record import Schema, Types
-from rdbpy.recovery import LogRecord
-from rdbpy.scan import TableScan
-from rdbpy.transaction import Transaction
+from simpledbpy.file import FileMgr
+from simpledbpy.log import LogMgr
+from simpledbpy.metadata import MetadataMgr, TableMgr
+from simpledbpy.record import Schema, Types
+from simpledbpy.recovery import LogRecord
+from simpledbpy.scan import TableScan
+from simpledbpy.transaction import Transaction
 
 
 class TestTableMgr(unittest.TestCase):
@@ -111,3 +111,6 @@ class TestMetadataMgr(unittest.TestCase):
         print(f"V(indexA, A) = {ii.distinct_values('A')}")
         print(f"V(indexA, B) = {ii.distinct_values('B')}")
         tx.commit()
+
+        for buff in lm:
+            print(LogRecord.create_log_record(buff))

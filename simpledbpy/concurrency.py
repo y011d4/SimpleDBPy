@@ -1,7 +1,7 @@
 import time
 from threading import Condition
 
-from rdbpy.file import BlockId
+from simpledbpy.file import BlockId
 
 
 class LockAbortError(RuntimeError):

@@ -2,8 +2,8 @@ import threading
 import time
 from typing import Optional, Sequence
 
-from rdbpy.file import BlockId, FileMgr, Page
-from rdbpy.log import LogMgr
+from simpledbpy.file import BlockId, FileMgr, Page
+from simpledbpy.log import LogMgr
 
 
 class BufferAbortError(RuntimeError):
