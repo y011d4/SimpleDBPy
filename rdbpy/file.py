@@ -94,6 +94,7 @@ class FileMgr:
                 f = self._get_file(blk.filename)
                 f.seek(blk.blknum * self._blocksize)
                 f.write(p.contents())
+                f.flush()
             except Exception as e:
                 print(e)
                 raise RuntimeError(f"cannot write block {blk}")
@@ -107,6 +108,7 @@ class FileMgr:
                 f = self._get_file(blk.filename)
                 f.seek(blk.blknum * self._blocksize)
                 f.write(b)
+                f.flush()
             except Exception as e:
                 print(e)
                 raise RuntimeError(f"cannot append block {blk}")
