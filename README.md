@@ -1,1 +1,1 @@
-# simpledbpy
+# SimpleDBPy
