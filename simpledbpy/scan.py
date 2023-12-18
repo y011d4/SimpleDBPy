@@ -1,24 +1,11 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Sequence
+
 from simpledbpy.file import BlockId
-from simpledbpy.record import Layout, RecordPage, Types
-
+from simpledbpy.grammar import Constant, Term
+from simpledbpy.record import Layout, RecordPage, Schema, Types
 from simpledbpy.transaction import Transaction
-
-
-@dataclass
-class Constant:
-    ival: Optional[int]
-    sval: Optional[str]
-
-    @classmethod
-    def from_int(cls, ival: int) -> "Constant":
-        return Constant(ival=ival, sval=None)
-
-    @classmethod
-    def from_string(cls, sval: str) -> "Constant":
-        return Constant(ival=None, sval=sval)
 
 
 @dataclass
@@ -204,3 +191,210 @@ class TableScan(UpdateScan):
     def _at_last_block(self) -> bool:
         assert self._rp is not None
         return self._rp.block().blknum == self._tx.size(self._filename) - 1
+
+
+class Predicate:
+    _terms: list[Term]
+
+    def __init__(self, t: Optional[Term] = None) -> None:
+        if t is None:
+            self._terms = []
+        else:
+            self._terms = [t]
+
+    def conjoin_with(self, pred: "Predicate") -> None:
+        self._terms += pred._terms
+
+    def is_satisfied(self, s: Scan) -> bool:
+        return all([t.is_satisfied(s) for t in self._terms])
+
+    # def reduction_factor(self, p: Plan) -> int:
+    #     pass
+
+    def select_sub_pred(self, sch: Schema) -> Optional["Predicate"]:
+        newterms = list(filter(lambda t: t.applies_to(sch), self._terms))
+        return None if len(newterms) == 0 else Predicate(newterms)
+
+    def join_sub_pred(self, sch1: Schema, sch2: Schema) -> Optional["Predicate"]:
+        newsch = Schema()
+        newsch.add_all(sch1)
+        newsch.add_all(sch2)
+        # NOTE: 例えば sch1: A1, B1, sch2: A2, B2 という field を持つとき、 A1=B1, A1=B2 などは newterms となるが、 A1=B1 は newterms とならない
+        newterms = list(
+            filter(
+                lambda t: not t.applies_to(sch1)
+                and not t.applies_to(sch2)
+                and t.applies_to(newsch),
+                self._terms,
+            )
+        )
+        return None if len(newterms) == 0 else Predicate(newterms)
+
+    # def equates_with_constant(self, fldname: str) -> Constant:
+    #     pass
+
+    # def equates_with_field(self, fldname: str) -> str:
+    #     pass
+
+    def __str__(self) -> str:
+        return " and ".join([str(t) for t in self._terms])
+
+
+class SelectScan(UpdateScan):
+    _s: Scan
+    _pred: Predicate
+
+    def __init__(self, s: Scan, pred: Predicate) -> None:
+        self._s = s
+        self._pred = pred
+
+    def before_first(self) -> None:
+        self._s.before_first()
+
+    def next(self) -> bool:
+        while self._s.next():
+            if self._pred.is_satisfied(self._s):
+                return True
+        return False
+
+    def get_int(self, fldname: str) -> int:
+        return self._s.get_int(fldname)
+
+    def get_string(self, fldname: str) -> str:
+        return self._s.get_string(fldname)
+
+    def get_val(self, fldname: str) -> Constant:
+        return self._s.get_val(fldname)
+
+    def has_field(self, fldname: str) -> bool:
+        return self._s.has_field(fldname)
+
+    def close(self) -> None:
+        self._s.close()
+
+    def set_int(self, fldname: str, val: int) -> None:
+        if not isinstance(self._s, UpdateScan):
+            raise RuntimeError
+        self._s.set_int(fldname, val)
+
+    def set_string(self, fldname: str, val: str) -> None:
+        if not isinstance(self._s, UpdateScan):
+            raise RuntimeError
+        self._s.set_string(fldname, val)
+
+    def set_val(self, fldname: str, val: Constant) -> None:
+        if not isinstance(self._s, UpdateScan):
+            raise RuntimeError
+        self._s.set_val(fldname, val)
+
+    def delete(self) -> None:
+        if not isinstance(self._s, UpdateScan):
+            raise RuntimeError
+        self._s.delete()
+
+    def insert(self) -> None:
+        if not isinstance(self._s, UpdateScan):
+            raise RuntimeError
+        self._s.insert()
+
+    def get_rid(self) -> RID:
+        if not isinstance(self._s, UpdateScan):
+            raise RuntimeError
+        return self._s.get_rid()
+
+    def move_to_rid(self, rid: RID) -> None:
+        if not isinstance(self._s, UpdateScan):
+            raise RuntimeError
+        self._s.move_to_rid(rid)
+
+
+class ProjectScan(Scan):
+    _s: Scan
+    _fieldlist: Sequence[str]
+
+    def __init__(self, s: Scan, fieldlist: Sequence[str]) -> None:
+        self._s = s
+        self._fieldlist = fieldlist
+
+    def before_first(self) -> None:
+        self._s.before_first()
+
+    def next(self) -> bool:
+        return self._s.next()
+
+    def get_int(self, fldname: str) -> int:
+        if self.has_field(fldname):
+            return self._s.get_int(fldname)
+        else:
+            raise RuntimeError(f"field {fldname} not found")
+
+    def get_string(self, fldname: str) -> str:
+        if self.has_field(fldname):
+            return self._s.get_string(fldname)
+        else:
+            raise RuntimeError(f"field {fldname} not found")
+
+    def get_val(self, fldname: str) -> Constant:
+        if self.has_field(fldname):
+            return self._s.get_val(fldname)
+        else:
+            raise RuntimeError(f"field {fldname} not found")
+
+    def has_field(self, fldname: str) -> bool:
+        return fldname in self._fieldlist
+
+    def close(self) -> None:
+        self._s.close()
+
+
+class ProductScan(Scan):
+    _s1: Scan
+    _s2: Scan
+
+    def __init__(self, s1: Scan, s2: Scan) -> None:
+        self._s1 = s1
+        self._s2 = s2
+        self._s1.next()
+
+    def before_first(self) -> None:
+        self._s1.before_first()
+        self._s1.next()
+        self._s2.before_first()
+
+    def next(self) -> bool:
+        if self._s2.next():
+            return True
+        else:
+            self._s2.before_first()
+            return self._s2.next() and self._s1.next()
+
+    def get_int(self, fldname: str) -> int:
+        if self._s1.has_field(fldname):
+            return self._s1.get_int(fldname)
+        elif self._s2.has_field(fldname):
+            return self._s2.get_int(fldname)
+        else:
+            raise RuntimeError(f"field {fldname} not found")
+
+    def get_string(self, fldname: str) -> str:
+        if self._s1.has_field(fldname):
+            return self._s1.get_string(fldname)
+        elif self._s2.has_field(fldname):
+            return self._s2.get_string(fldname)
+        else:
+            raise RuntimeError(f"field {fldname} not found")
+
+    def get_val(self, fldname: str) -> Constant:
+        if self._s1.has_field(fldname):
+            return self._s1.get_val(fldname)
+        elif self._s2.has_field(fldname):
+            return self._s2.get_val(fldname)
+        else:
+            raise RuntimeError(f"field {fldname} not found")
+
+    def has_field(self, fldname: str) -> bool:
+        return self._s1.has_field(fldname) or self._s2.has_field(fldname)
+
+    def close(self) -> None:
+        self._s1.close()
+        self._s2.close()
