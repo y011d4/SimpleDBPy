@@ -196,11 +196,11 @@ class TableScan(UpdateScan):
 class Predicate:
     _terms: list[Term]
 
-    def __init__(self, t: Optional[Term] = None) -> None:
+    def __init__(self, t: Optional[Sequence[Term]] = None) -> None:
         if t is None:
             self._terms = []
         else:
-            self._terms = [t]
+            self._terms = list(t)
 
     def conjoin_with(self, pred: "Predicate") -> None:
         self._terms += pred._terms
@@ -238,6 +238,9 @@ class Predicate:
 
     def __str__(self) -> str:
         return " and ".join([str(t) for t in self._terms])
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
 class SelectScan(UpdateScan):
