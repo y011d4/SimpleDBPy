@@ -5,6 +5,7 @@ from simpledbpy.record import Schema
 
 if TYPE_CHECKING:
     from simpledbpy.scan import Scan
+    from simpledbpy.plan import Plan
 
 
 @dataclass
@@ -83,14 +84,53 @@ class Term:
     def applies_to(self, sch: Schema) -> bool:
         return self.lhs.applies_to(sch) and self.rhs.applies_to(sch)
 
-    # def reduction_factor(self, p: Plan) -> int:
-    #     pass
+    def reduction_factor(self, p: Plan) -> int:
+        if self.lhs.is_field_name() and self.rhs.is_field_name():
+            lhs_name = self.lhs.fldname
+            rhs_name = self.rhs.fldname
+            return max(p.distinct_values(lhs_name), p.distinct_values(rhs_name))
+        if self.lhs.is_field_name():
+            lhs_name = self.lhs.fldname
+            return p.distinct_values(lhs_name)
+        if self.rhs.is_field_name():
+            rhs_name = self.rhs.fldname
+            return p.distinct_values(rhs_name)
+        if self.lhs.val == self.rhs.val:
+            return 1
+        else:
+            return 2**31 - 1
 
-    # def equates_with_constant(self, fldname: str) -> Constant:
-    #     pass
+    def equates_with_constant(self, fldname: str) -> Optional[Constant]:
+        if (
+            self.lhs.is_field_name()
+            and self.lhs.fldname == fldname
+            and not self.rhs.is_field_name()
+        ):
+            return self.rhs.val
+        elif (
+            self.rhs.is_field_name()
+            and self.rhs.fldname == fldname
+            and not self.lhs.is_field_name()
+        ):
+            return self.lhs.val
+        else:
+            return None
 
-    # def equates_with_field(self, fldname: str) -> str:
-    #     pass
+    def equates_with_field(self, fldname: str) -> Optional[str]:
+        if (
+            self.lhs.is_field_name()
+            and self.lhs.fldname == fldname
+            and self.rhs.is_field_name()
+        ):
+            return self.rhs.fldname
+        elif (
+            self.rhs.is_field_name()
+            and self.rhs.fldname == fldname
+            and self.lhs.is_field_name()
+        ):
+            return self.lhs.fldname
+        else:
+            return None
 
     def __str__(self) -> str:
         return f"{self.lhs}={self.rhs}"

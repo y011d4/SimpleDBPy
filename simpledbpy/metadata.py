@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from threading import Lock
-from typing import Mapping
+from typing import Mapping, Optional
 
 from simpledbpy.record import Layout, Schema, Types
 from simpledbpy.scan import TableScan
@@ -103,7 +103,7 @@ class ViewMgr:
         ts.set_string("viewdef", vdef)
         ts.close()
 
-    def get_view_def(self, vname: str, tx: Transaction) -> str:
+    def get_view_def(self, vname: str, tx: Transaction) -> Optional[str]:
         result = None
         layout = self._tbl_mgr.get_layout("viewcat", tx)
         ts = TableScan(tx, "viewcat", layout)
@@ -112,7 +112,6 @@ class ViewMgr:
                 result = ts.get_string("viewdef")
                 break
         ts.close()
-        assert result is not None
         return result
 
 
@@ -291,7 +290,7 @@ class MetadataMgr:
     def create_view(self, viewname: str, viewdef: str, tx: Transaction) -> None:
         return self._viewmgr.create_view(viewname, viewdef, tx)
 
-    def get_view_def(self, viewname: str, tx: Transaction) -> str:
+    def get_view_def(self, viewname: str, tx: Transaction) -> Optional[str]:
         return self._viewmgr.get_view_def(viewname, tx)
 
     def create_index(

@@ -1,11 +1,15 @@
+from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Sequence
+from typing import Optional, Sequence, TYPE_CHECKING
 
 from simpledbpy.file import BlockId
 from simpledbpy.grammar import Constant, Term
 from simpledbpy.record import Layout, RecordPage, Schema, Types
 from simpledbpy.transaction import Transaction
+
+if TYPE_CHECKING:
+    from simpledbpy.plan import Plan
 
 
 @dataclass
@@ -208,8 +212,11 @@ class Predicate:
     def is_satisfied(self, s: Scan) -> bool:
         return all([t.is_satisfied(s) for t in self._terms])
 
-    # def reduction_factor(self, p: Plan) -> int:
-    #     pass
+    def reduction_factor(self, p: Plan) -> int:
+        factor = 1
+        for t in self._terms:
+            factor *= t.reduction_factor(p)
+        return factor
 
     def select_sub_pred(self, sch: Schema) -> Optional["Predicate"]:
         newterms = list(filter(lambda t: t.applies_to(sch), self._terms))
@@ -230,11 +237,19 @@ class Predicate:
         )
         return None if len(newterms) == 0 else Predicate(newterms)
 
-    # def equates_with_constant(self, fldname: str) -> Constant:
-    #     pass
+    def equates_with_constant(self, fldname: str) -> Optional[Constant]:
+        for t in self._terms:
+            c = t.equates_with_constant(fldname)
+            if c is not None:
+                return c
+        return None
 
-    # def equates_with_field(self, fldname: str) -> str:
-    #     pass
+    def equates_with_field(self, fldname: str) -> Optional[str]:
+        for t in self._terms:
+            c = t.equates_with_field(fldname)
+            if c is not None:
+                return c
+        return None
 
     def __str__(self) -> str:
         return " and ".join([str(t) for t in self._terms])

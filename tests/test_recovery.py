@@ -1,11 +1,9 @@
-import os
 from pathlib import Path
 import unittest
+
 from simpledbpy.buffer import BufferMgr
 from simpledbpy.file import BlockId, FileMgr
 from simpledbpy.log import LogMgr
-
-from simpledbpy.recovery import RecoveryMgr
 from simpledbpy.transaction import Transaction
 
 
