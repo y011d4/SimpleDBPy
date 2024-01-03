@@ -88,12 +88,16 @@ class Term:
         if self.lhs.is_field_name() and self.rhs.is_field_name():
             lhs_name = self.lhs.fldname
             rhs_name = self.rhs.fldname
+            assert lhs_name is not None
+            assert rhs_name is not None
             return max(p.distinct_values(lhs_name), p.distinct_values(rhs_name))
         if self.lhs.is_field_name():
             lhs_name = self.lhs.fldname
+            assert lhs_name is not None
             return p.distinct_values(lhs_name)
         if self.rhs.is_field_name():
             rhs_name = self.rhs.fldname
+            assert rhs_name is not None
             return p.distinct_values(rhs_name)
         if self.lhs.val == self.rhs.val:
             return 1

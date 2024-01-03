@@ -269,7 +269,7 @@ class BasicUpdatePlanner(UpdatePlanner):
         return 1
 
     def execute_delete(self, data: DeleteData, tx: Transaction) -> int:
-        p = TablePlan(tx, data.tblname, self._mdm)
+        p: Plan = TablePlan(tx, data.tblname, self._mdm)
         p = SelectPlan(p, data.pred)
         us = p.open()
         assert isinstance(us, UpdateScan)
@@ -281,7 +281,7 @@ class BasicUpdatePlanner(UpdatePlanner):
         return count
 
     def execute_modify(self, data: ModifyData, tx: Transaction) -> int:
-        p = TablePlan(tx, data.tblname, self._mdm)
+        p: Plan = TablePlan(tx, data.tblname, self._mdm)
         p = SelectPlan(p, data.pred)
         us = p.open()
         assert isinstance(us, UpdateScan)

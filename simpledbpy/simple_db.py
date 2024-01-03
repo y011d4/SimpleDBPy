@@ -4,6 +4,12 @@ from simpledbpy.buffer import BufferMgr
 from simpledbpy.file import FileMgr
 from simpledbpy.log import LogMgr
 from simpledbpy.metadata import MetadataMgr
+from simpledbpy.plan import (
+    BasicQueryPlanner,
+    BasicUpdatePlanner,
+    BetterQueryPlanner,
+    Planner,
+)
 from simpledbpy.transaction import Transaction
 
 
@@ -16,6 +22,7 @@ class SimpleDB:
     _lm: LogMgr
     _bm: BufferMgr
     _mdm: MetadataMgr
+    _planner: Planner
 
     def __init__(self, dirname: str) -> None:
         tmpdir = Path("/tmp")
@@ -30,4 +37,13 @@ class SimpleDB:
             print("recovering existing database")
             tx.recover()
         self._mdm = MetadataMgr(isnew, tx)
+        qp = BetterQueryPlanner(self._mdm)
+        up = BasicUpdatePlanner(self._mdm)
+        self._planner = Planner(qp, up)
         tx.commit()
+
+    def new_tx(self) -> Transaction:
+        return Transaction(self._fm, self._lm, self._bm)
+
+    def planner(self) -> Planner:
+        return self._planner
